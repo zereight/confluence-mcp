@@ -1,5 +1,7 @@
 # How to use
 
+<a href="https://glama.ai/mcp/servers/p7fnmpaukj"><img width="380" height="200" src="https://glama.ai/mcp/servers/p7fnmpaukj/badge" alt="confluence-mcp MCP server" /></a>
+
 ## Using with Claude App
 
 When using with the Claude App, you need to set up your API key and URLs directly.
