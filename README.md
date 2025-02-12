@@ -1,6 +1,6 @@
 # How to use
 
-## Using with Claude App
+## Using with Claude App, Cline, Roo Code
 
 When using with the Claude App, you need to set up your API key and URLs directly.
 
