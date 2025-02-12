@@ -8,8 +8,8 @@ When using with the Claude App, you need to set up your API key and URLs directl
 {
   "mcpServers": {
     "Confluence communication server": {
-      "command": "npx -y @zereight/mcp-confluence",
-      "args": [],
+      "command": "npx",
+      "args": ["-y", "@zereight/mcp-confluence"],
       "env": {
         "CONFLUENCE_URL": "https://XXXXXXXX.atlassian.net",
         "JIRA_URL": "https://XXXXXXXX.atlassian.net",
