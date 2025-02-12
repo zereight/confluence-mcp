@@ -1,5 +1,7 @@
 # How to use
 
+[![smithery badge](https://smithery.ai/badge/@zereight/confluence-mcp)](https://smithery.ai/server/@zereight/confluence-mcp)
+
 ## Using with Claude App
 
 When using with the Claude App, you need to set up your API key and URLs directly.
@@ -22,6 +24,14 @@ When using with the Claude App, you need to set up your API key and URLs directl
 ```
 
 ## Using with Cursor
+
+### Installing via Smithery
+
+To install Confluence communication server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@zereight/confluence-mcp):
+
+```bash
+npx -y @smithery/cli install @zereight/confluence-mcp --client claude
+```
 
 When using with Cursor, you can set up environment variables and run the server as follows:
 
