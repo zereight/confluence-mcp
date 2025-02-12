@@ -1,5 +1,7 @@
 # How to use
 
+[![smithery badge](https://smithery.ai/badge/@zereight/confluence-mcp)](https://smithery.ai/server/@zereight/confluence-mcp)
+
 <a href="https://glama.ai/mcp/servers/p7fnmpaukj"><img width="380" height="200" src="https://glama.ai/mcp/servers/p7fnmpaukj/badge" alt="confluence-mcp MCP server" /></a>
 
 ## Using with Claude App, Cline, Roo Code
@@ -24,6 +26,14 @@ When using with the Claude App, you need to set up your API key and URLs directl
 ```
 
 ## Using with Cursor
+
+### Installing via Smithery
+
+To install Confluence communication server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@zereight/confluence-mcp):
+
+```bash
+npx -y @smithery/cli install @zereight/confluence-mcp --client claude
+```
 
 When using with Cursor, you can set up environment variables and run the server as follows:
 
