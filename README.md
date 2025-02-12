@@ -2,7 +2,7 @@
 
 <a href="https://glama.ai/mcp/servers/p7fnmpaukj"><img width="380" height="200" src="https://glama.ai/mcp/servers/p7fnmpaukj/badge" alt="confluence-mcp MCP server" /></a>
 
-## Using with Claude App
+## Using with Claude App, Cline, Roo Code
 
 When using with the Claude App, you need to set up your API key and URLs directly.
 
@@ -10,8 +10,8 @@ When using with the Claude App, you need to set up your API key and URLs directl
 {
   "mcpServers": {
     "Confluence communication server": {
-      "command": "npx -y @zereight/mcp-confluence",
-      "args": [],
+      "command": "npx",
+      "args": ["-y", "@zereight/mcp-confluence"],
       "env": {
         "CONFLUENCE_URL": "https://XXXXXXXX.atlassian.net",
         "JIRA_URL": "https://XXXXXXXX.atlassian.net",
