@@ -116,7 +116,7 @@ function convertToADF(text: string): any {
  */
 const server = new Server(
   {
-    name: "Confluence communication server",
+    name: "Better Confluence communication server",
     version: "0.1.0",
   },
   {
