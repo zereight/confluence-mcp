@@ -72,7 +72,7 @@ function convertToADF(text) {
  * 이 서버는 MCP 프로토콜을 통해 Confluence 작업 도구들을 제공합니다.
  */
 const server = new Server({
-    name: "Confluence communication server",
+    name: "Better Confluence communication server",
     version: "0.1.0",
 }, {
     capabilities: {
