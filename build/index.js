@@ -91,6 +91,11 @@ const server = new Server({
  * - create_jira_issue: 새로운 Jira 이슈 생성
  * - update_jira_issue: 기존 Jira 이슈 수정
  * - transition_jira_issue: Jira 이슈 상태 변경
+ * - get_board_sprints: Jira 보드에서 모든 스프린트 가져오기
+ * - get_sprint_issues: 스프린트에서 모든 이슈 가져오기
+ * - get_current_sprint: 현재 활성 스프린트 조회
+ * - get_epic_issues: 에픽에 속한 모든 이슈 조회
+ * - get_user_issues: 특정 보드에서 특정 유저와 관련된 모든 이슈 조회
  *
  * 각 도구는 다음 정보를 포함합니다:
  * - 이름과 설명
@@ -279,6 +284,116 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                         },
                     },
                     required: ["issueKey", "transitionId"],
+                },
+            },
+            {
+                name: "get_board_sprints",
+                description: "Get all sprints from a Jira board",
+                inputSchema: {
+                    type: "object",
+                    properties: {
+                        boardId: {
+                            type: "string",
+                            description: "Jira board ID",
+                        },
+                        state: {
+                            type: "string",
+                            description: "Filter sprints by state (active, future, closed)",
+                            enum: ["active", "future", "closed"],
+                        },
+                    },
+                    required: ["boardId"],
+                },
+            },
+            {
+                name: "get_sprint_issues",
+                description: "Get all issues from a sprint",
+                inputSchema: {
+                    type: "object",
+                    properties: {
+                        sprintId: {
+                            type: "string",
+                            description: "Sprint ID",
+                        },
+                        fields: {
+                            type: "array",
+                            description: "List of fields to return for each issue",
+                            items: {
+                                type: "string",
+                            },
+                        },
+                    },
+                    required: ["sprintId"],
+                },
+            },
+            {
+                name: "get_current_sprint",
+                description: "Get current active sprint from a board with its issues",
+                inputSchema: {
+                    type: "object",
+                    properties: {
+                        boardId: {
+                            type: "string",
+                            description: "Jira board ID",
+                        },
+                        includeIssues: {
+                            type: "boolean",
+                            description: "Whether to include sprint issues in the response",
+                            default: true,
+                        },
+                    },
+                    required: ["boardId"],
+                },
+            },
+            {
+                name: "get_epic_issues",
+                description: "Get all issues belonging to an epic",
+                inputSchema: {
+                    type: "object",
+                    properties: {
+                        epicKey: {
+                            type: "string",
+                            description: "Epic issue key (e.g. CONNECT-1234)",
+                        },
+                        fields: {
+                            type: "array",
+                            description: "List of fields to return for each issue",
+                            items: {
+                                type: "string",
+                            },
+                        },
+                    },
+                    required: ["epicKey"],
+                },
+            },
+            {
+                name: "get_user_issues",
+                description: "Get all issues assigned to or reported by a specific user in a board",
+                inputSchema: {
+                    type: "object",
+                    properties: {
+                        boardId: {
+                            type: "string",
+                            description: "Jira board ID",
+                        },
+                        username: {
+                            type: "string",
+                            description: "Username to search issues for",
+                        },
+                        type: {
+                            type: "string",
+                            description: "Type of user association with issues",
+                            enum: ["assignee", "reporter"],
+                            default: "assignee",
+                        },
+                        status: {
+                            type: "string",
+                            description: "Filter by issue status",
+                            enum: ["open", "in_progress", "done", "all"],
+                            default: "all",
+                        },
+                    },
+                    required: ["boardId", "username"],
                 },
             },
         ],
@@ -510,6 +625,171 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 throw new Error("Issue key and transition ID are required");
             }
             const response = await transitionJiraIssue(issueKey, transitionId);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(response, null, 2),
+                    },
+                ],
+            };
+        }
+        case "get_board_sprints": {
+            const boardId = String(request.params.arguments?.boardId);
+            const state = request.params.arguments?.state;
+            if (!boardId) {
+                throw new Error("Board ID is required");
+            }
+            const response = await getBoardSprints(boardId, state);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(response, null, 2),
+                    },
+                ],
+            };
+        }
+        case "get_sprint_issues": {
+            const sprintId = String(request.params.arguments?.sprintId);
+            const fields = request.params.arguments?.fields;
+            if (!sprintId) {
+                throw new Error("Sprint ID is required");
+            }
+            const response = await getSprintIssues(sprintId, fields);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(response, null, 2),
+                    },
+                ],
+            };
+        }
+        case "get_current_sprint": {
+            const boardId = String(request.params.arguments?.boardId);
+            const includeIssues = request.params.arguments?.includeIssues !== false;
+            if (!boardId) {
+                throw new Error("Board ID is required");
+            }
+            // 1. 현재 활성 스프린트 조회
+            const sprintsResponse = await getBoardSprints(boardId, "active");
+            if (!sprintsResponse.success || !sprintsResponse.data.values.length) {
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify({ error: "No active sprint found" }, null, 2),
+                        },
+                    ],
+                };
+            }
+            const currentSprint = sprintsResponse.data.values[0];
+            if (!includeIssues) {
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify({ sprint: currentSprint }, null, 2),
+                        },
+                    ],
+                };
+            }
+            // 2. 스프린트의 이슈들 조회
+            const issuesResponse = await getSprintIssues(String(currentSprint.id));
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            sprint: currentSprint,
+                            issues: issuesResponse.success ? issuesResponse.issues : [],
+                            total: issuesResponse.success ? issuesResponse.total : 0,
+                        }, null, 2),
+                    },
+                ],
+            };
+        }
+        case "get_epic_issues": {
+            const epicKey = String(request.params.arguments?.epicKey);
+            const fields = request.params.arguments?.fields;
+            if (!epicKey) {
+                throw new Error("Epic key is required");
+            }
+            try {
+                const params = {
+                    jql: `"Epic Link" = ${epicKey}`,
+                    fields: fields || [
+                        "summary",
+                        "status",
+                        "assignee",
+                        "priority",
+                        "issuetype",
+                    ],
+                    maxResults: 100,
+                };
+                const response = await axios.get(`${JIRA_URL}/rest/api/2/search`, {
+                    headers: getAuthHeaders().headers,
+                    params,
+                });
+                const issues = response.data.issues.map((issue) => ({
+                    key: issue.key,
+                    summary: issue.fields.summary,
+                    status: issue.fields.status?.name,
+                    assignee: issue.fields.assignee?.displayName,
+                    priority: issue.fields.priority?.name,
+                    issuetype: issue.fields.issuetype?.name,
+                }));
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify({
+                                total: response.data.total,
+                                issues,
+                            }, null, 2),
+                        },
+                    ],
+                };
+            }
+            catch (error) {
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify({
+                                error: error.response?.data?.errorMessages?.[0] || error.message,
+                                details: error.response?.data || {},
+                            }, null, 2),
+                        },
+                    ],
+                };
+            }
+        }
+        case "get_user_issues": {
+            const boardId = String(request.params.arguments?.boardId);
+            const username = String(request.params.arguments?.username);
+            const type = String(request.params.arguments?.type || "assignee");
+            const status = String(request.params.arguments?.status || "all");
+            if (!boardId || !username) {
+                throw new Error("Board ID and username are required");
+            }
+            // JQL 쿼리 구성
+            let jql = `${type} = '${username}' AND board = ${boardId}`;
+            // 상태 필터 추가
+            switch (status) {
+                case "open":
+                    jql += " AND status = 'To Do'";
+                    break;
+                case "in_progress":
+                    jql += " AND status = '진행 중'";
+                    break;
+                case "done":
+                    jql += " AND status = 'Done'";
+                    break;
+            }
+            // 이슈 조회
+            const response = await executeJQL(jql, 100);
             return {
                 content: [
                     {
@@ -831,6 +1111,89 @@ async function transitionJiraIssue(issueKey, transitionId) {
             status: response.status,
             message: "Issue status updated successfully",
             transition: availableTransitions.find((t) => t.id === transitionId),
+        };
+    }
+    catch (error) {
+        return {
+            success: false,
+            error: error.response?.data?.errorMessages?.[0] || error.message,
+            details: error.response?.data || {},
+            status: error.response?.status,
+        };
+    }
+}
+/**
+ * 보드의 스프린트 조회
+ *
+ * Jira 보드의 모든 스프린트를 조회합니다.
+ *
+ * @param {string} boardId - Jira 보드 ID
+ * @param {string} [state] - 스프린트 상태 필터 (active, future, closed)
+ * @returns {Promise<any>} 스프린트 목록 또는 오류 정보
+ */
+async function getBoardSprints(boardId, state) {
+    try {
+        const params = {};
+        if (state) {
+            params.state = state;
+        }
+        const response = await axios.get(`${JIRA_URL}/rest/agile/1.0/board/${boardId}/sprint`, {
+            headers: getAuthHeaders().headers,
+            params,
+        });
+        return {
+            success: true,
+            data: response.data,
+        };
+    }
+    catch (error) {
+        return {
+            success: false,
+            error: error.response?.data?.errorMessages?.[0] || error.message,
+            details: error.response?.data || {},
+            status: error.response?.status,
+        };
+    }
+}
+/**
+ * 스프린트의 이슈 조회
+ *
+ * 특정 스프린트의 모든 이슈를 조회합니다.
+ *
+ * @param {string} sprintId - 스프린트 ID
+ * @param {string[]} [fields] - 반환할 이슈 필드 목록
+ * @returns {Promise<any>} 이슈 목록 또는 오류 정보
+ */
+async function getSprintIssues(sprintId, fields) {
+    try {
+        const defaultFields = [
+            "key",
+            "summary",
+            "status",
+            "assignee",
+            "priority",
+            "issuetype",
+        ];
+        const params = {
+            fields: fields || defaultFields,
+        };
+        const response = await axios.get(`${JIRA_URL}/rest/agile/1.0/sprint/${sprintId}/issue`, {
+            headers: getAuthHeaders().headers,
+            params,
+        });
+        // 응답 데이터를 가공하여 필요한 정보만 반환
+        const issues = response.data.issues.map((issue) => ({
+            key: issue.key,
+            summary: issue.fields.summary,
+            status: issue.fields.status?.name,
+            assignee: issue.fields.assignee?.displayName,
+            priority: issue.fields.priority?.name,
+            issuetype: issue.fields.issuetype?.name,
+        }));
+        return {
+            success: true,
+            total: response.data.total,
+            issues,
         };
     }
     catch (error) {
