@@ -248,8 +248,9 @@ env CONFLUENCE_API_MAIL=your@email.com CONFLUENCE_API_KEY=your-key CONFLUENCE_UR
     }
     ```
 
-- **transition_jira_issue**: Transitions the status of a Jira issue.
-  - Description: Changes the workflow status of a Jira issue.
+- **transition_jira_issue**: Changes the status of a Jira issue.
+
+  - Description: Changes the status of a Jira issue using transition ID.
   - Input Schema:
     ```json
     {
@@ -257,7 +258,7 @@ env CONFLUENCE_API_MAIL=your@email.com CONFLUENCE_API_KEY=your-key CONFLUENCE_UR
       "properties": {
         "issueKey": {
           "type": "string",
-          "description": "Issue key (e.g., PROJ-123)"
+          "description": "Issue key (e.g. PROJ-123)"
         },
         "transitionId": {
           "type": "string",
@@ -265,5 +266,130 @@ env CONFLUENCE_API_MAIL=your@email.com CONFLUENCE_API_KEY=your-key CONFLUENCE_UR
         }
       },
       "required": ["issueKey", "transitionId"]
+    }
+    ```
+
+- **get_board_sprints**: Get all sprints from a Jira board.
+
+  - Description: Retrieves all sprints from a specified Jira board.
+  - Input Schema:
+    ```json
+    {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "Jira board ID"
+        },
+        "state": {
+          "type": "string",
+          "description": "Filter sprints by state (active, future, closed)",
+          "enum": ["active", "future", "closed"]
+        }
+      },
+      "required": ["boardId"]
+    }
+    ```
+
+- **get_sprint_issues**: Get all issues from a sprint.
+
+  - Description: Retrieves all issues from a specified sprint.
+  - Input Schema:
+    ```json
+    {
+      "type": "object",
+      "properties": {
+        "sprintId": {
+          "type": "string",
+          "description": "Sprint ID"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of fields to return for each issue"
+        }
+      },
+      "required": ["sprintId"]
+    }
+    ```
+
+- **get_current_sprint**: Get current active sprint from a board with its issues.
+
+  - Description: Retrieves the current active sprint and its issues from a specified board.
+  - Input Schema:
+    ```json
+    {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "Jira board ID"
+        },
+        "includeIssues": {
+          "type": "boolean",
+          "description": "Whether to include sprint issues in the response",
+          "default": true
+        }
+      },
+      "required": ["boardId"]
+    }
+    ```
+
+- **get_epic_issues**: Get all issues belonging to an epic.
+
+  - Description: Retrieves all issues that belong to a specified epic.
+  - Input Schema:
+    ```json
+    {
+      "type": "object",
+      "properties": {
+        "epicKey": {
+          "type": "string",
+          "description": "Epic issue key (e.g. CONNECT-1234)"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of fields to return for each issue"
+        }
+      },
+      "required": ["epicKey"]
+    }
+    ```
+
+- **get_user_issues**: Get all issues assigned to or reported by a specific user in a board.
+
+  - Description: Retrieves all issues associated with a specific user in a board.
+  - Input Schema:
+    ```json
+    {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "Jira board ID"
+        },
+        "username": {
+          "type": "string",
+          "description": "Username to search issues for"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of user association with issues",
+          "enum": ["assignee", "reporter"],
+          "default": "assignee"
+        },
+        "status": {
+          "type": "string",
+          "description": "Filter by issue status",
+          "enum": ["open", "in_progress", "done", "all"],
+          "default": "all"
+        }
+      },
+      "required": ["boardId", "username"]
     }
     ```
