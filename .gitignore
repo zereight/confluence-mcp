@@ -20,3 +20,4 @@ bin-release/
 .vscode/
 .env
 node_modules/
+build
