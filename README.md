@@ -32,7 +32,8 @@ When using with the Claude App, you need to set up your API key and URLs directl
         "CONFLUENCE_URL": "https://XXXXXXXX.atlassian.net",
         "JIRA_URL": "https://XXXXXXXX.atlassian.net",
         "CONFLUENCE_API_MAIL": "Your email",
-        "CONFLUENCE_API_KEY": "KEY_FROM: https://id.atlassian.com/manage-profile/security/api-tokens"
+        "CONFLUENCE_API_KEY": "KEY_FROM: https://id.atlassian.com/manage-profile/security/api-tokens",
+        "CONFLUENCE_IS_CLOUD": "true" // Set to "false" for Server/Data Center
       }
     }
   }
