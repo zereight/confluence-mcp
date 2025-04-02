@@ -59,6 +59,12 @@ env CONFLUENCE_API_MAIL=your@email.com CONFLUENCE_API_KEY=your-key CONFLUENCE_UR
 - `CONFLUENCE_API_KEY`: Your Confluence API key.
 - `CONFLUENCE_URL`: Your Confluence URL.
 - `JIRA_URL`: Your JIRA URL.
+- `CONFLUENCE_IS_CLOUD`: Determines Confluence version (Cloud or Server)
+  - Default: true (Cloud version)
+  - Set to 'false' explicitly for Server/Data Center version
+  - Affects API endpoint paths:
+    - Cloud: `/wiki/rest/api`
+    - Server: `/rest/api`
 
 ### Confluence Tools
 

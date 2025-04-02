@@ -34,6 +34,14 @@ const CONFLUENCE_URL = process.env.CONFLUENCE_URL;
 const JIRA_URL = process.env.JIRA_URL;
 const CONFLUENCE_API_MAIL = process.env.CONFLUENCE_API_MAIL;
 const CONFLUENCE_API_KEY = process.env.CONFLUENCE_API_KEY;
+/**
+ * Confluence 버전 플래그
+ *
+ * - 설정하지 않으면 기본값으로 true(Cloud 버전)로 동작
+ * - 명시적으로 'false'로 설정해야 Server 버전으로 동작
+ * - true 또는 다른 값으로 설정하면 Cloud 버전으로 동작
+ */
+const CONFLUENCE_IS_CLOUD = process.env.CONFLUENCE_IS_CLOUD !== 'false';
 
 // Validate required environment variables
 if (
@@ -47,6 +55,19 @@ if (
   );
   process.exit(1);
 }
+
+/**
+ * Confluence API 기본 경로 결정
+ *
+ * CONFLUENCE_IS_CLOUD 환경 변수 값에 따라 API 경로를 반환합니다.
+ * - true(Cloud 버전): /wiki/rest/api 경로 사용
+ * - false(Server 버전): /rest/api 경로 사용
+ *
+ * @returns {string} Confluence API 기본 경로
+ */
+const getConfluenceApiBasePath = (): string => {
+  return CONFLUENCE_IS_CLOUD ? `${CONFLUENCE_URL}/wiki/rest/api` : `${CONFLUENCE_URL}/rest/api`;
+};
 
 /**
  * Jira 이슈 인터페이스
@@ -466,7 +487,7 @@ async function executeCQL(cql: string, limit: number): Promise<any> {
     };
 
     const response = await axios.get(
-      `${CONFLUENCE_URL}/wiki/rest/api/content/search`,
+      `${getConfluenceApiBasePath()}/content/search`,
       {
         // Updated URL
         headers: getAuthHeaders().headers,
@@ -494,7 +515,7 @@ async function executeCQL(cql: string, limit: number): Promise<any> {
 async function getPageContent(pageId: string): Promise<any> {
   try {
     const response = await axios.get(
-      `${CONFLUENCE_URL}/wiki/rest/api/content/${pageId}?expand=body.storage,version,space`,
+      `${getConfluenceApiBasePath()}/content/${pageId}?expand=body.storage,version,space`,
       {
         // Updated URL
         headers: getAuthHeaders().headers,
@@ -977,7 +998,7 @@ async function createPage(
     }
 
     const response = await axios.post(
-      `${CONFLUENCE_URL}/wiki/rest/api/content`,
+      `${getConfluenceApiBasePath()}/content`,
       data,
       getAuthHeaders()
     );
@@ -1050,7 +1071,7 @@ async function updatePage(
     }
 
     const response = await axios.put(
-      `${CONFLUENCE_URL}/wiki/rest/api/content/${pageId}`,
+      `${getConfluenceApiBasePath()}/content/${pageId}`,
       data,
       getAuthHeaders()
     );
