@@ -870,7 +870,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           maxResults: 100,
         };
 
-        const response = await axios.get(`${JIRA_URL}/rest/api/2/search`, {
+        const response = await axios.get(`${JIRA_URL}/rest/api/3/search`, {
           headers: getAuthHeaders().headers,
           params,
         });
