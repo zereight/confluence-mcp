@@ -1,3 +1,5 @@
+
+
 # Better Confluence Communication Server
 
 ## Overview
@@ -53,7 +55,7 @@ npx -y @smithery/cli install @zereight/confluence-mcp --client claude
 When using with Cursor, you can set up environment variables and run the server as follows:
 
 ```bash
-env CONFLUENCE_API_MAIL=your@email.com CONFLUENCE_API_KEY=your-key CONFLUENCE_URL=your-confluence-url JIRA_URL=your-jira-url npx -y @zereight/mcp-confluence
+env CONFLUENCE_API_MAIL=your@email.com CONFLUENCE_API_KEY=your-key CONFLUENCE_URL=your-confluence-url JIRA_URL=your-jira-url CONFLUENCE_IS_CLOUD=true npx -y @zereight/mcp-confluence
 ```
 
 - `CONFLUENCE_API_MAIL`: Your email address for the Confluence API.
